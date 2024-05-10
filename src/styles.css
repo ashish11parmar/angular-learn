@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.mdc-text-field--filled:not(.mdc-text-field--disabled) {
+    background-color: white !important;
+}
+
+.mdc-text-field--filled:not(.mdc-text-field--disabled):hover {
+    background-color: white !important;
+}
+
+.mat-stepper-header-position-bottom .mat-horizontal-stepper-header-container {
+    order: 0;
+}
