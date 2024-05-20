@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 .mdc-text-field--filled:not(.mdc-text-field--disabled) {
     background-color: white !important;
 }
@@ -11,5 +13,25 @@
 }
 
 .mat-stepper-header-position-bottom .mat-horizontal-stepper-header-container {
-    order: 0;
+    display: none;
+}
+
+html .mat-mdc-mini-fab.mat-accent {
+    --mdc-fab-small-container-color: #67a0f5;
+    --mat-fab-small-foreground-color: white;
+    --mat-fab-small-state-layer-color: white;
+    --mat-fab-small-ripple-color: rgb(255, 250, 250);
+}
+
+.mat-mdc-mini-fab {
+    color: #a70000;
+    box-shadow: none;
+}
+
+.mat-mdc-mini-fab.mat-accent {
+    box-shadow: none;
+}
+
+.mat-mdc-mini-fab.mat-accent:hover {
+    box-shadow: none;
 }

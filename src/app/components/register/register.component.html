@@ -1,4 +1,4 @@
-<div class="flex flex-col justify-center items-center font-[sans-serif] bg-white text-[#333] md:h-screen">
+<div class="form flex flex-col justify-center items-center font-[sans-serif] bg-white text-[#333] md:h-screen">
     <div
         class="grid md:grid-cols-2 items-center gap-y-8 max-w-7xl w-full shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] m-6 rounded-md relative overflow-hidden">
         <div class="max-md:order-1 p-4 bg-gray-50 h-full hidden md:block">
@@ -7,10 +7,10 @@
         </div>
         <div class="flex items-center p-6 max-w-md w-full h-full mx-auto">
             <form class="w-full" [formGroup]="registerUser">
-                <div class="mb-12">
-                    <h3 class="text-blue-500 lg:text-3xl text-2xl font-extrabold max-md:text-center">Create an
+                <div class="mb-5">
+                    <h2 class="text-blue-500 lg:text-3xl text-2xl font-extrabold max-md:text-center">Create an
                         account
-                    </h3>
+                    </h2>
                 </div>
                 <mat-stepper headerPosition="bottom" #stepper>
                     <mat-step class="mat-label">
@@ -96,7 +96,7 @@
                                 <mat-form-field class="w-full">
                                     <input matInput placeholder="Phone Number"
                                         class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-red rounded"
-                                        formControlName="phone" />
+                                        formControlName="phone" maxlength="10" />
                                     <mat-icon matSuffix>phone_locked</mat-icon>
                                     @if(registerUser.get('phone').hasError('required')){
                                     <mat-error>Please enter your phone number</mat-error>
@@ -107,6 +107,12 @@
                                     }
                                 </mat-form-field>
                             </div>
+                        </div>
+
+                        <div class="flex justify-end items-center">
+                            <button mat-mini-fab matStepperNext>
+                                <mat-icon>keyboard_arrow_right</mat-icon>
+                            </button>
                         </div>
                     </mat-step>
                     <mat-step>
@@ -222,6 +228,15 @@
                                 </mat-form-field>
                             </div>
                         </div>
+                        <div class="flex justify-between items-center">
+                            <button mat-mini-fab matStepperPrevious>
+                                <mat-icon>keyboard_arrow_left</mat-icon>
+                            </button>
+                            <button mat-mini-fab matStepperNext>
+                                <mat-icon>keyboard_arrow_right</mat-icon>
+                            </button>
+                        </div>
+
                     </mat-step>
                     <mat-step>
                         <div class="-mx-3 mb-6">
@@ -280,6 +295,14 @@
                                 </mat-form-field>
                             </div>
                         </div>
+                        <div class="flex justify-between items-center">
+                            <button mat-mini-fab matStepperPrevious>
+                                <mat-icon>keyboard_arrow_left</mat-icon>
+                            </button>
+                            <button mat-mini-fab matStepperNext>
+                                <mat-icon>keyboard_arrow_right</mat-icon>
+                            </button>
+                        </div>
                     </mat-step>
                     <mat-step>
                         <div class="-mx-3 mb-6">
@@ -289,14 +312,17 @@
                                     country
                                 </label>
                                 <div class="relative">
-                                    <mat-form-field class="w-full">
-                                        <mat-label>select country</mat-label>
-                                        <mat-select formControlName="state" (selectionChange)="getCity($event)"
-                                            matNativeControl required>
-                                            @for (cntry of country; track cntry) {
-                                            <mat-option [value]="cntry.name">{{cntry.name}}</mat-option>
-                                            }
-                                        </mat-select>
+                                    <mat-form-field appearance="fill" class="w-full">
+                                        <mat-label>Search Countries</mat-label>
+                                        <input type="text" formControlName="state" (change)="getCity($event)" matInput
+                                            [matAutocomplete]="auto">
+                                        <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                                        <mat-autocomplete #auto="matAutocomplete">
+                                            <mat-option *ngFor="let country of filteredCountries | async"
+                                                [value]="country.name">
+                                                {{ country.name }}
+                                            </mat-option>
+                                        </mat-autocomplete>
                                         <mat-error>Please select country</mat-error>
                                     </mat-form-field>
                                 </div>
@@ -307,14 +333,15 @@
                                     city
                                 </label>
                                 <div class="relative">
-                                    <mat-form-field class="w-full">
-                                        <mat-label>select city</mat-label>
-                                        <mat-select [disabled]="citySelect" formControlName="city" matNativeControl
-                                            required>
-                                            @for (city of cities; track city) {
-                                            <mat-option [value]="city">{{city}}</mat-option>
-                                            }
-                                        </mat-select>
+                                    <mat-form-field appearance="fill" class="w-full">
+                                        <mat-label>Select City</mat-label>
+                                        <input type="text" matInput formControlName="city" [matAutocomplete]="cityAuto">
+                                        <mat-icon matSuffix>arrow_drop_down</mat-icon>
+                                        <mat-autocomplete #cityAuto="matAutocomplete">
+                                            <mat-option *ngFor="let city of filteredCities | async" [value]="city">
+                                                {{ city }}
+                                            </mat-option>
+                                        </mat-autocomplete>
                                         <mat-error>Please select city</mat-error>
                                     </mat-form-field>
                                 </div>
@@ -341,16 +368,26 @@
                             </div>
                             <!-- Zip End -->
                         </div>
+                        <div class="flex items-center">
+                            <button mat-mini-fab matStepperPrevious>
+                                <mat-icon>keyboard_arrow_left</mat-icon>
+                            </button>
+                        </div>
+
+                        <div>
+                            <button [disabled]="registerBtn" type="button" (click)="regsiter()" mat-raised-button color="basic"
+                                class="register-btn w-full mt-5 mb-2">
+                                Register
+                            </button>
+                        </div>
                     </mat-step>
                 </mat-stepper>
-                <div>
-                    <button mat-button></button>
-                    <button type="button" (click)="regsiter()" [disabled]="!registerUser.valid"
-                        [ngClass]="!registerUser.valid ? 'cursor-not-allowed' : ''"
-                        class="w-full shadow-xl py-3.5 px-8 text-sm font-semibold rounded-xl bg-blue-500 hover:bg-blue-600 text-white border focus:outline-none transition-all">
-                        Register
-                    </button>
 
+                <div class="mt-12">
+                    <p class="text-sm font-light text-gray-500 dark:text-gray-400">
+                        Already have an account? <a routerLinkActive='active' [routerLink]="['/login']"
+                            class="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign in</a>
+                    </p>
                 </div>
             </form>
         </div>

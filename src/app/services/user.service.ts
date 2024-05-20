@@ -1,5 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { config } from '../config';
+
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +22,22 @@ export class UserService {
 
   getAllCountry() {
     return this.http.get('https://countriesnow.space/api/v0.1/countries/positions')
+  }
+
+  signupUser(user: any) {
+    return this.http.post(`${config.register}`, user)
+  }
+  signinUser(user: any) {
+    return this.http.post(`${config.login}`, user)
+  }
+
+
+  verificationCompany(email: any, otp: any) {
+    let payload = {
+      "email": email,
+      "otp": otp
+    }
+    return this.http.post(`${config.otpverification}`, payload);
   }
 
 }

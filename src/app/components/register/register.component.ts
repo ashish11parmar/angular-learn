@@ -8,15 +8,19 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatStepperModule } from '@angular/material/stepper';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { UserService } from '../../services/user.service';
 import Swal from 'sweetalert2';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
+import { Router, RouterModule } from '@angular/router';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { map, Observable, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [MatFormFieldModule, MatInputModule, CommonModule, MatIconModule, MatCardModule, ReactiveFormsModule, FormsModule, MatSelectModule, MatRadioModule, MatButtonModule, MatDatepickerModule, MatStepperModule],
+  imports: [MatFormFieldModule, MatInputModule, CommonModule, MatAutocompleteModule, MatIconModule, RouterModule, MatCardModule, ReactiveFormsModule, FormsModule, MatSelectModule, MatRadioModule, MatButtonModule, MatDatepickerModule, MatStepperModule, MatTooltipModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
@@ -24,21 +28,27 @@ export class RegisterComponent {
   hide: boolean = true;
   chide: boolean = true
   matchPassword: boolean = true
+  registerBtn: boolean = false
   maxDate = new Date
-  country: any
-  cities: any
-  citySelect: boolean = true
+  cityList: any[] = [];
+  countries: any[] = [];
+  filteredCountries: Observable<any> | any;
+  filteredCities: Observable<any> | any;
   public registerUser: FormGroup | any
 
 
-  constructor(private _userservices: UserService) {
+  constructor(private _userservices: UserService,
+    private _router: Router
+  ) {
 
   }
 
   ngOnInit() {
     this.createForm();
-    this.getAllCountry()
+    this.getAllCountry();
+
   }
+
 
   // CreatForm
 
@@ -73,20 +83,26 @@ export class RegisterComponent {
     this.chide = !this.chide
   }
 
+  // This function is used for filterr the country
+  private _filterCountries(value: string): any[] {
+    const filterValue = value.toLowerCase();
+    return this.countries.filter(country => country.name.toLowerCase().includes(filterValue));
+  }
+
+  private _filter(value: string): string[] {
+    const filter = value.toLowerCase();
+    return this.cityList.filter(city => city.toLowerCase().includes(filter));
+  }
 
   // Custom validator for minimum age
   minimumAgeValidator(minAge: number) {
     return (control: any) => {
-
       if (!control.value) {
         return null;
       }
-      // console.log("CONTROL::", control);
       const dob = new Date(control.value);
-      // console.log("DOB::", dob);
       const today = new Date();
       const diff = today.getFullYear() - dob.getFullYear();
-      // console.log("FUL YEAR::", diff)
       if (diff < minAge) {
         return { minimumAge: true };
       }
@@ -97,11 +113,6 @@ export class RegisterComponent {
 
 
   regsiter() {
-    // Mark all fields as touched to trigger validation errors
-    Object.keys(this.registerUser.controls).forEach(field => {
-      const control = this.registerUser.get(field);
-      control.markAsTouched({ onlySelf: true });
-    });
 
     // If form is invalid, stop here
     if (this.registerUser.invalid) {
@@ -110,7 +121,6 @@ export class RegisterComponent {
         icon: 'error',
         position: 'top-right',
         showConfirmButton: false,
-        // icon: typeIcon,
         timerProgressBar: true,
         timer: 3000,
         title: 'Please fill all property'
@@ -118,31 +128,63 @@ export class RegisterComponent {
       return;
     } else {
       if (this.registerUser.value.password === this.registerUser.value.cpassword) {
-        console.log(this.registerUser.value);
+        this.registerBtn = true
+        this._userservices.signupUser(this.registerUser.value).subscribe((res: any) => {
+          this.registerBtn = false
+          Swal.fire({
+            toast: true,
+            icon: 'success',
+            position: 'top-right',
+            showConfirmButton: false,
+            timerProgressBar: true,
+            timer: 3000,
+            title: `${res.msg}`
+          })
+          this._router.navigate(['otp/verify'], { queryParams: { email: this.registerUser.value.email } });
+        }, (error: any) => {
+          this.registerBtn = false
+          Swal.fire({
+            toast: true,
+            icon: 'error',
+            position: 'top-right',
+            showConfirmButton: false,
+            timerProgressBar: true,
+            timer: 3000,
+            title: `${error.error.msg ? error.error.msg : 'Something went wrong'}`
+          })
+
+        })
       } else {
-        console.log("password not match");
+        Swal.fire({
+          toast: true,
+          icon: 'error',
+          position: 'top-right',
+          showConfirmButton: false,
+          timerProgressBar: true,
+          timer: 3000,
+          title: 'Password not match'
+        })
       }
     }
   }
 
   getAllCountry() {
     this._userservices.getAllCountry().subscribe((res: any) => {
-      this.country = res.data
+      this.countries = res.data
+      this.filteredCountries = this.registerUser.get('state').valueChanges.pipe(
+        startWith(''),
+        map((value: any) => this._filterCountries(value))
+      );
     }, (error: any) => {
-      console.log(error);
     })
   }
 
   getCity(event: any) {
-    this.citySelect = true
-    this._userservices.getAllCities(event.value).subscribe((res: any) => {
-      this.cities = res.data
-      this.citySelect = false
-    }, (error: any) => {
-      console.log("ERROR::", error);
-
+    this._userservices.getAllCities(event.target.value).subscribe((res: any) => {
+      this.cityList = res.data
+      this.filteredCities = this.registerUser.get('city').valueChanges.pipe(startWith(''), map((value: any) => this._filter(value)));
+    }, (error: any) => { 
     })
-
   }
 
 }
